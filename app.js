@@ -69,7 +69,7 @@ async function loadFrases() {
     const base = window.location.pathname.endsWith('/')
       ? window.location.pathname
       : window.location.pathname.replace(/\/[^/]*$/, '/');
-    const res = await fetch(`${base}data/frases.json`);
+    const res = await fetch(`${base}frases.json`);
     if (!res.ok) throw new Error('Falha ao carregar frases.');
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) throw new Error('JSON vazio.');
