@@ -1,9 +1,9 @@
 /* ============================================================
-   Sparks Resiliência – Service Worker
+   Sparks Líder – Service Worker
    Estratégia: Cache-First / Offline-First
    ============================================================ */
 
-const CACHE_NAME = 'sparks-resiliencia-v1';
+const CACHE_NAME = 'sparks-lider-v1';
 
 /* Arquivos que serão cacheados na instalação */
 const STATIC_ASSETS = [

@@ -1,5 +1,5 @@
 /* ============================================================
-   Sparks Resiliência – app.js
+   Sparks Líder – app.js
    Lógica principal: frases, favoritos, export, premium, UI
    ============================================================ */
 
@@ -39,37 +39,38 @@ function registerServiceWorker() {
 
 /* ─── LocalStorage helpers ─── */
 function loadFromStorage() {
-  State.username  = localStorage.getItem('sr_username')  || '';
-  State.isPremium = localStorage.getItem('sr_premium') === 'true';
-  State.favorites = JSON.parse(localStorage.getItem('sr_favorites') || '[]');
-  State.history   = JSON.parse(localStorage.getItem('sr_history')   || '[]');
+  State.username  = localStorage.getItem('sl_username')  || '';
+  State.isPremium = localStorage.getItem('sl_premium') === 'true';
+  State.favorites = JSON.parse(localStorage.getItem('sl_favorites') || '[]');
+  State.history   = JSON.parse(localStorage.getItem('sl_history')   || '[]');
 }
 
 function saveUsername(name) {
-  localStorage.setItem('sr_username', name);
+  localStorage.setItem('sl_username', name);
   State.username = name;
 }
 
 function saveFavorites() {
-  localStorage.setItem('sr_favorites', JSON.stringify(State.favorites));
+  localStorage.setItem('sl_favorites', JSON.stringify(State.favorites));
 }
 
 function saveHistory() {
-  localStorage.setItem('sr_history', JSON.stringify(State.history));
+  localStorage.setItem('sl_history', JSON.stringify(State.history));
 }
 
 function activatePremium(bool) {
   State.isPremium = bool;
-  localStorage.setItem('sr_premium', bool ? 'true' : 'false');
+  localStorage.setItem('sl_premium', bool ? 'true' : 'false');
 }
 
 /* ─── Carregar frases do JSON ─── */
 async function loadFrases() {
   try {
-    const base = window.location.pathname.endsWith('/')
+    /* Usa path absoluto para garantir compatibilidade com Vercel, Netlify e subpastas */
+    const basePath = window.location.pathname.endsWith('/')
       ? window.location.pathname
       : window.location.pathname.replace(/\/[^/]*$/, '/');
-    const res = await fetch(`${base}frases.json`);
+    const res = await fetch(`${basePath}data/frases.json`);
     if (!res.ok) throw new Error('Falha ao carregar frases.');
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) throw new Error('JSON vazio.');
@@ -179,7 +180,7 @@ function setupAppScreen() {
 /* ─── Saudação ─── */
 function updateGreeting() {
   const el = $('#greeting-name');
-  if (el) el.textContent = `Persista, ${State.username}.`;
+  if (el) el.textContent = `Bom foco, ${State.username}.`;
 }
 
 /* ─── Exibir frase aleatória ─── */
@@ -260,11 +261,11 @@ async function handleShare() {
   const frase = State.frases.find(f => f.id === State.currentId);
   if (!frase) return;
 
-  const text = `✨ Spark do dia:\n\n${frase.text}\n\n— Sparks Resiliência`;
+  const text = `✨ Spark do dia:\n\n${frase.text}\n\n— Sparks Líder`;
 
   if (navigator.share) {
     try {
-      await navigator.share({ title: 'Sparks Resiliência', text });
+      await navigator.share({ title: 'Sparks Líder', text });
     } catch (_) { /* usuário cancelou */ }
   } else {
     try {
@@ -288,16 +289,17 @@ function handleExport() {
 function exportToCanvas(frase, premium) {
   const W      = 1080;
   const H      = 1080;
-  const MARGIN = 120;
-  const MAX_W  = W - MARGIN * 2; /* 840px */
-  const FONT   = 'Arial, sans-serif'; /* sempre disponível no Canvas */
+  const MARGIN = 120;           /* margem lateral segura — afasta o texto das bordas */
+  const MAX_W  = W - MARGIN * 2; /* 840px utilizáveis */
+  /* Usa Arial que SEMPRE está disponível no Canvas — evita erro de measureText com fonte não carregada */
+  const FONT   = 'Arial, sans-serif';
 
   const canvas = document.createElement('canvas');
   canvas.width  = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  /* ── Helper: quebra texto em linhas ── */
+  /* ── Helper: quebra texto em linhas respeitando MAX_W ── */
   function wrapText(text, fontSize, weight) {
     ctx.font = `${weight} ${fontSize}px ${FONT}`;
     const words = text.split(' ');
@@ -320,35 +322,36 @@ function exportToCanvas(frase, premium) {
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, W, H);
 
-  /* ── Borda gradiente verde topo ── */
+  /* ── Borda gradiente topo ── */
   const grad = ctx.createLinearGradient(0, 0, W, 0);
-  grad.addColorStop(0, '#1B7A5A');
-  grad.addColorStop(1, '#4DB68C');
+  grad.addColorStop(0, '#1565C0');
+  grad.addColorStop(1, '#42A5F5');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, 12);
 
   /* ── Logo ── */
   ctx.font      = `bold 34px ${FONT}`;
-  ctx.fillStyle = '#1B7A5A';
+  ctx.fillStyle = '#1565C0';
   ctx.textAlign = 'left';
-  ctx.fillText('Sparks Resiliência', MARGIN, 88);
+  ctx.fillText('Sparks Líder', MARGIN, 88);
 
   /* ── Linha divisória ── */
-  ctx.strokeStyle = '#D1FAE5';
+  ctx.strokeStyle = '#E2E8F0';
   ctx.lineWidth   = 2;
   ctx.beginPath();
   ctx.moveTo(MARGIN, 112);
   ctx.lineTo(W - MARGIN, 112);
   ctx.stroke();
 
-  /* ── Calcular todas as sub-linhas para centralizar verticalmente ── */
-  const rawLines   = frase.text.split('\n').map(l => l.trim()).filter(Boolean);
+  /* ── Calcular todas as linhas primeiro para centralizar verticalmente ── */
+  const rawLines  = frase.text.split('\n').map(l => l.trim()).filter(Boolean);
   const lineStyles = [
-    { size: 62, weight: 'bold', color: '#0A5C40', gap: 36 },
-    { size: 50, weight: '400',  color: '#4A5568', gap: 32 },
-    { size: 54, weight: '700',  color: '#1A1A2E', gap: 0  },
+    { size: 62, weight: 'bold',   color: '#0D47A1', gap: 36 },
+    { size: 50, weight: '400',    color: '#4A5568', gap: 32 },
+    { size: 54, weight: '700',    color: '#1A1A2E', gap: 0  },
   ];
 
+  /* Monta array com todas as sub-linhas para calcular altura total */
   const allRows = [];
   rawLines.forEach((line, i) => {
     const st   = lineStyles[i] || lineStyles[2];
@@ -358,17 +361,19 @@ function exportToCanvas(frase, premium) {
     });
   });
 
+  /* Altura total do bloco de texto */
   const totalH = allRows.reduce((acc, r, idx) => {
     const lineH = r.style.size * 1.35;
     const gap   = (r.isLast && idx < allRows.length - 1) ? r.style.gap : 0;
     return acc + lineH + gap;
   }, 0);
 
+  /* Área disponível entre linha divisória e rodapé */
   const areaTop = 160;
   const areaBot = H - 180;
   const areaH   = areaBot - areaTop;
-  let y = areaTop + (areaH - totalH) / 2 + lineStyles[0].size;
-  if (y < areaTop + 60) y = areaTop + 60;
+  let y = areaTop + (areaH - totalH) / 2 + lineStyles[0].size; /* centralizado */
+  if (y < areaTop + 60) y = areaTop + 60; /* mínimo de segurança */
 
   /* ── Renderizar linhas ── */
   allRows.forEach((r, idx) => {
@@ -383,20 +388,23 @@ function exportToCanvas(frase, premium) {
 
   /* ── Rodapé ── */
   if (premium) {
-    const name = State.username || 'Resiliente';
+    const name = State.username || 'Líder';
 
-    ctx.strokeStyle = '#D1FAE5';
+    /* Linha dourada */
+    ctx.strokeStyle = '#E8D5A3';
     ctx.lineWidth   = 1.5;
     ctx.beginPath();
     ctx.moveTo(W / 2 - 140, H - 138);
     ctx.lineTo(W / 2 + 140, H - 138);
     ctx.stroke();
 
+    /* Label */
     ctx.font      = `400 24px ${FONT}`;
     ctx.fillStyle = '#B0BEC5';
     ctx.textAlign = 'center';
     ctx.fillText('compartilhado por', W / 2, H - 98);
 
+    /* Nome dourado */
     ctx.font      = `bold 46px ${FONT}`;
     ctx.fillStyle = '#C9963A';
     ctx.fillText(name, W / 2, H - 46);
@@ -405,12 +413,12 @@ function exportToCanvas(frase, premium) {
     ctx.font      = `400 24px ${FONT}`;
     ctx.fillStyle = '#CBD5E0';
     ctx.textAlign = 'center';
-    ctx.fillText('Gerado no Sparks Resiliência', W / 2, H - 60);
+    ctx.fillText('Gerado no Sparks Líder', W / 2, H - 60);
   }
 
   /* ── Download ── */
   const link = document.createElement('a');
-  link.download = `sparks-resiliencia-${frase.id}.png`;
+  link.download = `sparks-lider-${frase.id}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
 

@@ -1,19 +1,5 @@
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-
-[[headers]]
-  for = "/service-worker.js"
-  [headers.values]
-    Cache-Control = "no-cache"
-    Service-Worker-Allowed = "/"
-
-[[headers]]
-  for = "/manifest.json"
-  [headers.values]
-    Content-Type = "application/manifest+json"
+# Configuração Netlify – Sparks Líder
+# Necessário para o Android reconhecer o app e esconder a barra de URL
 
 [[headers]]
   for = "/.well-known/assetlinks.json"
