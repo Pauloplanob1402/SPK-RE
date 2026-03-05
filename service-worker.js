@@ -3,7 +3,7 @@
    Estratégia: Cache-First / Offline-First
    ============================================================ */
 
-const CACHE_NAME = 'sparks-resiliencia-v1';
+const CACHE_NAME = 'sparks-resiliencia-v2';
 
 /* Arquivos que serão cacheados na instalação */
 const STATIC_ASSETS = [
@@ -11,10 +11,8 @@ const STATIC_ASSETS = [
   './index.html',
   './style.css',
   './app.js',
-  './data/frases.json',
+  './frases.json',
   './manifest.json',
-  './config/theme.json',
-  './config/app.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];
